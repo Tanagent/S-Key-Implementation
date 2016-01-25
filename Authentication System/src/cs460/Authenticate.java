@@ -18,6 +18,7 @@ import java.util.Scanner;
 public class Authenticate {
 	// determines if the program should continue
 	public static boolean success = true;
+	public static StringBuffer[] passwordSet;
 
 	public static void main(String[] args) throws Exception {
 		// This is the database file
@@ -156,14 +157,31 @@ public class Authenticate {
 			// Program writes the username and the hashed password into the file
 			// then creates a new line and closes the file here.
 			fw.write(username + " ");
-			fw.write(MD5(password));
+			fw.write(skey(password));
 			fw.write("\r\n");
 			fw.close();
+			
+			// The encrypted password. Use this to log
+			System.out.println(skey(password));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
 		System.out.println();
+	}
+	
+	/**
+	 * S/Key Cycle
+	 * This method cycles through the password n times and returns
+	 * the last password stored in the list
+	 */
+	public static String skey(String Password) {
+		
+		for(int i = 0; i < 20; i++) {
+			Password = MD5(Password);
+		}
+		
+		return Password;
 	}
 
 	/**
@@ -189,7 +207,7 @@ public class Authenticate {
 
 		// User enters their password here.
 		System.out.print("Password: ");
-		String password = scanner.nextLine();
+		String password = skey(scanner.nextLine());
 
 		// Program will search through the text file and find the matching username
 		// if the username matches, it will hash the given password with the MD5 function
@@ -199,12 +217,13 @@ public class Authenticate {
 		while (txtscan.hasNextLine()) {
 			String str = txtscan.next();
 			if (str.indexOf(username) != -1) {
-				if (MD5(password).equals(txtscan.next())) {
+				if (password.equals(txtscan.next())) {
 					System.out.println("SUCCESS!");
 					success = false;
 				}
 				else {
 					System.out.println("WRONG PASSWORD\n");
+					System.out.println(skey(password));
 					menu(file);
 				}
 				break;
